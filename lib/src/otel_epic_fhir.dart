@@ -1,11 +1,12 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_epic_fhir_suppression.dart';
 
 class EpicFhirResult {
+  /// Creates a result.
   const EpicFhirResult({
     this.environment,
     this.tenant,
@@ -61,8 +62,13 @@ class EpicFhirResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class EpicFhirCallResult<T> {
+  /// Creates a call result.
   const EpicFhirCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final EpicFhirResult? result;
 }
@@ -70,127 +76,132 @@ class EpicFhirCallResult<T> {
 Future<T> tracedEpicFhir<T>({
   required String operation,
   required Future<EpicFhirCallResult<T>> Function() invoke,
-  Tracer? tracer,
+  APITracer? tracer,
 }) async {
   if (epicFhirInstrumentationSuppressed()) {
     final r = await invoke();
     return r.value;
   }
-  final t = tracer ?? OTel.tracerProvider().getTracer('otel_epic_fhir');
+  final t = tracer ?? OTelAPI.tracerProvider().getTracer('otel_epic_fhir');
   final span = t.startSpan('epic_fhir $operation', kind: SpanKind.client);
   try {
     span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.system', 'fhir')]));
+        OTelAPI.attributes([OTelAPI.attributeString('rpc.system', 'fhir')]));
+    span.addAttributes(OTelAPI.attributes(
+        [OTelAPI.attributeString('rpc.service', 'EpicFHIR')]));
     span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.service', 'EpicFHIR')]));
-    span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.method', operation)]));
+        OTelAPI.attributes([OTelAPI.attributeString('rpc.method', operation)]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.environment != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('epic_fhir.environment', res.environment!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('epic_fhir.environment', res.environment!)
+        ]));
       }
       if (res.tenant != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('epic_fhir.tenant', res.tenant!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('epic_fhir.tenant', res.tenant!)]));
       }
       if (res.fhirVersion != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.version', res.fhirVersion!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('fhir.version', res.fhirVersion!)]));
       }
       if (res.interaction != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.interaction', res.interaction!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('fhir.interaction', res.interaction!)]));
       }
       if (res.resourceType != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.resource.type', res.resourceType!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('fhir.resource.type', res.resourceType!)
+        ]));
       }
       if (res.resourceId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.resource.id', res.resourceId!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('fhir.resource.id', res.resourceId!)]));
       }
       if (res.bundleType != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.bundle.type', res.bundleType!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('fhir.bundle.type', res.bundleType!)]));
       }
       if (res.entryCount != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('fhir.bundle.entry_count', res.entryCount!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('fhir.bundle.entry_count', res.entryCount!)
+        ]));
       }
       if (res.totalCount != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('fhir.bundle.total', res.totalCount!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeInt('fhir.bundle.total', res.totalCount!)]));
       }
       if (res.searchMode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.search.mode', res.searchMode!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('fhir.search.mode', res.searchMode!)]));
       }
       if (res.includeCount != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt('fhir.search.include_count', res.includeCount!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('fhir.search.include_count', res.includeCount!)
         ]));
       }
       if (res.revIncludeCount != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt(
               'fhir.search.rev_include_count', res.revIncludeCount!)
         ]));
       }
       if (res.pages != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('fhir.search.pages', res.pages!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeInt('fhir.search.pages', res.pages!)]));
       }
       if (res.bulkExportType != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('fhir.bulk.export_type', res.bulkExportType!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('fhir.bulk.export_type', res.bulkExportType!)
         ]));
       }
       if (res.bulkJobStatus != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('fhir.bulk.job_status', res.bulkJobStatus!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('fhir.bulk.job_status', res.bulkJobStatus!)
         ]));
       }
       if (res.bulkOutputFiles != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt('fhir.bulk.output_files', res.bulkOutputFiles!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('fhir.bulk.output_files', res.bulkOutputFiles!)
         ]));
       }
       if (res.bulkOutputBytes != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt('fhir.bulk.output_bytes', res.bulkOutputBytes!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('fhir.bulk.output_bytes', res.bulkOutputBytes!)
         ]));
       }
       if (res.smartScope != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('smart.scope', res.smartScope!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('smart.scope', res.smartScope!)]));
       }
       if (res.smartLaunch != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('smart.launch', res.smartLaunch!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('smart.launch', res.smartLaunch!)]));
       }
       if (res.usCoreProfile != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('fhir.us_core.profile', res.usCoreProfile!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('fhir.us_core.profile', res.usCoreProfile!)
         ]));
       }
       if (res.operationName != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('fhir.operation.name', res.operationName!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('fhir.operation.name', res.operationName!)
+        ]));
       }
       if (res.statusCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('http.response.status_code', res.statusCode!)
+        ]));
       }
       if (res.errorCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('epic_fhir.error.code', res.errorCode!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('epic_fhir.error.code', res.errorCode!)]));
       }
       if (res.outcomeSeverity != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('fhir.outcome.severity', res.outcomeSeverity!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('fhir.outcome.severity', res.outcomeSeverity!)
         ]));
       }
       final fail = res.errorCode != null ||
@@ -199,9 +210,9 @@ Future<T> tracedEpicFhir<T>({
           res.outcomeSeverity == 'fatal' ||
           res.bulkJobStatus == 'failed';
       if (fail) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
-              ErrorResource.errorType.key, res.errorCode ?? 'epic_fhir.error')
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+              ErrorAttributes.errorType.key, res.errorCode ?? 'epic_fhir.error')
         ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
