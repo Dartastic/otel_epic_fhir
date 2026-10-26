@@ -2,7 +2,7 @@ name: otel_epic_fhir
 description: >-
   OpenTelemetry instrumentation for epic_fhir by Dartastic.io. Adds standard
   OpenTelemetry observability to applications that use epic_fhir.
-version: 0.1.0
+version: 0.1.1-wip
 repository: https://github.com/dartastic/otel_epic_fhir
 homepage: https://dartastic.io
 
